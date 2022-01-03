@@ -17,7 +17,8 @@ if __name__ == "__main__":
     params_file.close()
     my_masterpiece = Masterpiece(
         rules_path="rules.json",
-        length=params["length"],
+        verse_length=params["verse_length"],
+        chorus_length=params["chorus_length"],
         tempo=params["tempo"])
     subfolder = "output"
     if not os.path.isdir(subfolder):
