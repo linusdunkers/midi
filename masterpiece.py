@@ -18,11 +18,12 @@ class Masterpiece(object):
         rules_file.close()
         self.rhythm = rules["rhythm"]
         self.seq_chord = rules["seq_chord"]
+        self.seq_bass = rules["seq_bass"]
         self.seq_perc = rules["seq_perc"]
         self.velocity = rules["velocity"]
         self.rn = RandomNote(rules["notes"], rules["interval_upper"], rules["interval_lower"])
 
-        self.MyMIDI = MIDIFile(3)
+        self.MyMIDI = MIDIFile(4)
         self.current_track_number = 0
 
     def create_melody_sequence(self):
@@ -45,7 +46,7 @@ class Masterpiece(object):
             time=0, tempo=self.tempo)
         self.MyMIDI.addProgramChange(
             tracknum=self.current_track_number,
-            channel=0, time=0, program=0)
+            channel=0, time=0, program=9)
 
         pos = 0
         for pitch, duration in seq_melody:
@@ -78,7 +79,7 @@ class Masterpiece(object):
             time=0, tempo=self.tempo)
         self.MyMIDI.addProgramChange(
             tracknum=self.current_track_number,
-            channel=0, time=0, program=0)
+            channel=1, time=0, program=0)
 
         # C  D  E  F  G  A  B  | C  D  E  F  G  A  B  | C
         # 48 50 52 53 55 57 59 | 60 62 64 65 67 69 71 | 72
@@ -86,25 +87,57 @@ class Masterpiece(object):
         pos = 0
         while pos < self.length * 16:
             for item in self.seq_chord:
+                delay = 0
                 for pitch in item:
                     self.MyMIDI.addControllerEvent(
                         track=self.current_track_number,
-                        channel=0, time=pos, controller_number=64, parameter=127)
+                        channel=1, time=pos, controller_number=64, parameter=127)
                     self.MyMIDI.addControllerEvent(
                         track=self.current_track_number,
-                        channel=0, time=pos + 1.96875, controller_number=64, parameter=0)
+                        channel=1, time=pos + 3.96875, controller_number=64, parameter=0)
                     self.MyMIDI.addNote(
                         track=self.current_track_number,
-                        channel=0, pitch=pitch, time=pos, duration=2, volume=76)
+                        channel=1, pitch=pitch, time=pos + delay, duration=4 - delay, volume=76)
+                    delay += 1
+                pos += 4
+        self.current_track_number += 1
+        
+    def create_bass_track(self):
+        self.MyMIDI.addTrackName(
+            track=self.current_track_number,
+            time=0, trackName="bass")
+        self.MyMIDI.addTempo(
+            track=self.current_track_number,
+            time=0, tempo=self.tempo)
+        self.MyMIDI.addProgramChange(
+            tracknum=self.current_track_number,
+            channel=2, time=0, program=32)
+
+        # C  D  E  F  G  A  B  | C  D  E  F  G  A  B  | C
+        # 48 50 52 53 55 57 59 | 60 62 64 65 67 69 71 | 72
+
+        pos = 0
+        while pos < self.length * 16:
+            for item in self.seq_bass:
+                for pitch in item:
                     self.MyMIDI.addControllerEvent(
                         track=self.current_track_number,
-                        channel=0, time=pos + 2, controller_number=64, parameter=127)
+                        channel=2, time=pos, controller_number=64, parameter=127)
                     self.MyMIDI.addControllerEvent(
                         track=self.current_track_number,
-                        channel=0, time=pos + 3.96875, controller_number=64, parameter=0)
+                        channel=2, time=pos + 1.96875, controller_number=64, parameter=0)
                     self.MyMIDI.addNote(
                         track=self.current_track_number,
-                        channel=0, pitch=pitch, time=pos + 2, duration=2, volume=68)
+                        channel=2, pitch=pitch, time=pos, duration=2, volume=76)
+                    self.MyMIDI.addControllerEvent(
+                        track=self.current_track_number,
+                        channel=2, time=pos + 2, controller_number=64, parameter=127)
+                    self.MyMIDI.addControllerEvent(
+                        track=self.current_track_number,
+                        channel=2, time=pos + 3.96875, controller_number=64, parameter=0)
+                    self.MyMIDI.addNote(
+                        track=self.current_track_number,
+                        channel=2, pitch=pitch, time=pos + 2, duration=2, volume=68)
                 pos += 4
         self.current_track_number += 1
 
@@ -139,12 +172,14 @@ class Masterpiece(object):
                 pos += duration
         self.current_track_number += 1
 
-    def create_midi_file(self, filename, melody=True, chord=True, perc=True):
+    def create_midi_file(self, filename, melody=True, chord=True, perc=True, bass=True):
         if melody:
             self.create_melody_track()
         if chord:
             self.create_chord_track()
         if perc:
             self.create_perc_track()
+        if bass:
+            self.create_bass_track()
         with open(filename, "wb") as midi_file:
             self.MyMIDI.writeFile(midi_file)
