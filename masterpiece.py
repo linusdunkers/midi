@@ -5,6 +5,7 @@ import json
 from midiutil.MidiFile import MIDIFile
 
 from randomnote import RandomNote
+from greenlet.tests.test_throw import switch
 
 
 class Masterpiece(object):
@@ -26,8 +27,14 @@ class Masterpiece(object):
         self.verse_seq_perc = rules["verse_seq_perc"]
         self.chorus_seq_perc = rules["chorus_seq_perc"]
         self.velocity = rules["velocity"]
-        self.verse_rn = RandomNote(rules["verse_notes"], rules["interval_upper"], rules["interval_lower"])
-        self.chorus_rn = RandomNote(rules["chorus_notes"], rules["interval_upper"], rules["interval_lower"])
+        self.verse1_rn = RandomNote(rules["verse1_notes"], rules["interval_upper"], rules["interval_lower"])
+        self.verse2_rn = RandomNote(rules["verse2_notes"], rules["interval_upper"], rules["interval_lower"])
+        self.verse3_rn = RandomNote(rules["verse3_notes"], rules["interval_upper"], rules["interval_lower"])
+        self.verse4_rn = RandomNote(rules["verse4_notes"], rules["interval_upper"], rules["interval_lower"])
+        self.chorus1_rn = RandomNote(rules["chorus1_notes"], rules["interval_upper"], rules["interval_lower"])
+        self.chorus2_rn = RandomNote(rules["chorus2_notes"], rules["interval_upper"], rules["interval_lower"])
+        self.chorus3_rn = RandomNote(rules["chorus3_notes"], rules["interval_upper"], rules["interval_lower"])
+        self.chorus4_rn = RandomNote(rules["chorus4_notes"], rules["interval_upper"], rules["interval_lower"])
 
         self.MyMIDI = MIDIFile(8)
         self.current_track_number = 0
@@ -35,19 +42,43 @@ class Masterpiece(object):
     def verse_create_melody_sequence(self):
         seq_melody = []
         for i in range(self.verse_length):
+            phrase_num = 1
             for phrase in self.verse_rhythm:
-                self.verse_rn.reset()
-                for duration in phrase:
-                    seq_melody.append((self.verse_rn.random_note(), duration))
+                #self.verse_rn.reset()
+                if phrase_num == 1:
+                    for duration in phrase:
+                        seq_melody.append((self.verse1_rn.random_note(), duration));
+                elif phrase_num == 2:
+                    for duration in phrase:
+                        seq_melody.append((self.verse2_rn.random_note(), duration));
+                elif phrase_num == 3:
+                    for duration in phrase:
+                        seq_melody.append((self.verse3_rn.random_note(), duration));
+                else:
+                    for duration in phrase:
+                        seq_melody.append((self.verse4_rn.random_note(), duration));
+                phrase_num += 1
         return seq_melody
     
     def chorus_create_melody_sequence(self):
         seq_melody = []
         for i in range(self.chorus_length):
+            phrase_num = 1
             for phrase in self.chorus_rhythm:
-                self.chorus_rn.reset()
-                for duration in phrase:
-                    seq_melody.append((self.chorus_rn.random_note(), duration))
+                #self.verse_rn.reset()
+                if phrase_num == 1:
+                    for duration in phrase:
+                        seq_melody.append((self.chorus1_rn.random_note(), duration));
+                elif phrase_num == 2:
+                    for duration in phrase:
+                        seq_melody.append((self.chorus2_rn.random_note(), duration));
+                elif phrase_num == 3:
+                    for duration in phrase:
+                        seq_melody.append((self.chorus3_rn.random_note(), duration));
+                else:
+                    for duration in phrase:
+                        seq_melody.append((self.chorus4_rn.random_note(), duration));
+                phrase_num += 1
         return seq_melody
 
     def verse_create_melody_track(self):
@@ -426,7 +457,7 @@ class Masterpiece(object):
                 pos += duration
         self.current_track_number += 1
 
-    def create_midi_file(self, filename, melody=False, chord=True, perc=True, bass=True):
+    def create_midi_file(self, filename, melody=True, chord=True, perc=True, bass=True):
         if melody:
             self.verse_create_melody_track()
             self.chorus_create_melody_track()
